@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { WebSocketServer } = require('ws');
 
-// 1. Criar o Servidor HTTP para servir os arquivos HTML, CSS e JS
+// 1. Servidor HTTP
 const server = http.createServer((req, res) => {
     let filePath = req.url === '/' ? '/index.html' : req.url;
     const fullPath = path.join(__dirname, 'public', filePath);
@@ -28,110 +28,12 @@ const server = http.createServer((req, res) => {
     });
 });
 
-// 2. Configurar o WebSocket Server
+// 2. WebSocket Server
 const wss = new WebSocketServer({ server });
 
-let players = []; // Guarda as conexões ativas
-let gameState = Array(9).fill(null); // Tabuleiro [0-8]
-let turn = 'X'; // Começa com o jogador X
-
-wss.on('connection', (ws) => {
-    if (players.length >= 2) {
-        ws.send(JSON.stringify({ type: 'error', message: 'Sala cheia! Tente novamente mais tarde.' }));
-        ws.close();
-        return;
-    }
-
-    // Define o símbolo: o primeiro é X, o segundo é O
-    const symbol = players.length === 0 ? 'X' : 'O';
-    players.push({ ws, symbol });
-
-    // Informa ao jogador recém-conectado qual é o símbolo dele
-    ws.send(JSON.stringify({ type: 'init', symbol }));
-
-    if (players.length === 2) {
-        // Zera o tabuleiro para começar do zero com os dois logados
-        resetGame();
-        // Avisa aos dois que o jogo começou e que a vez inicial é do 'X'
-        broadcast({ type: 'start', turn: 'X' });
-    } else {
-        ws.send(JSON.stringify({ type: 'waiting', message: 'Aguardando o segundo jogador...' }));
-    }
-
-    ws.on('message', (message) => {
-        try {
-            const data = JSON.parse(message);
-
-            if (data.type === 'move') {
-                const { index, playerSymbol } = data;
-
-                // Garante que só joga quem está no turno correto
-                if (turn === playerSymbol && gameState[index] === null) {
-                    gameState[index] = playerSymbol;
-                    
-                    const winner = checkWinner();
-                    if (winner) {
-                        broadcast({ type: 'gameover', result: 'winner', winner, board: gameState });
-                        resetGame();
-                    } else if (gameState.every(cell => cell !== null)) {
-                        broadcast({ type: 'gameover', result: 'draw', board: gameState });
-                        resetGame();
-                    } else {
-                        // Alterna o turno entre X e O
-                        turn = turn === 'X' ? 'O' : 'X';
-                        broadcast({ type: 'update', board: gameState, turn });
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("Erro ao processar mensagem do cliente:", error);
-        }
-    });
-
-    ws.on('close', () => {
-        players = players.filter(player => player.ws !== ws);
-        resetGame();
-        broadcast({ type: 'opponent_disconnected', message: 'O oponente saiu. Aguardando novo jogador...' });
-    });
-});
-
-    ws.on('message', (message) => {
-        try {
-            const data = JSON.parse(message);
-
-            if (data.type === 'move') {
-                const { index, playerSymbol } = data;
-
-                // Valida se a jogada é de quem tem o turno e se a casa está vazia
-                if (turn === playerSymbol && gameState[index] === null) {
-                    gameState[index] = playerSymbol;
-                    
-                    const winner = checkWinner();
-                    if (winner) {
-                        broadcast({ type: 'gameover', result: 'winner', winner, board: gameState });
-                        resetGame();
-                    } else if (gameState.every(cell => cell !== null)) {
-                        broadcast({ type: 'gameover', result: 'draw', board: gameState });
-                        resetGame();
-                    } else {
-                        // Alterna a vez de jogar
-                        turn = turn === 'X' ? 'O' : 'X';
-                        broadcast({ type: 'update', board: gameState, turn });
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("Erro ao processar mensagem do cliente:", error);
-        }
-    });
-
-    ws.on('close', () => {
-        // Remove jogador que se desconectou e avisa o outro
-        players = players.filter(player => player.ws !== ws);
-        resetGame();
-        broadcast({ type: 'opponent_disconnected', message: 'O oponente saiu. Jogo reiniciado.' });
-    });
-
+let players = []; 
+let gameState = Array(9).fill(null); 
+let turn = 'X'; 
 
 function broadcast(data) {
     players.forEach(player => {
@@ -148,11 +50,10 @@ function resetGame() {
 
 function checkWinner() {
     const winPatterns = [
-        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
-        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
-        [0, 4, 8], [2, 4, 6]             // Diagonais
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
     ];
-
     for (let pattern of winPatterns) {
         const [a, b, c] = pattern;
         if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
@@ -162,7 +63,57 @@ function checkWinner() {
     return null;
 }
 
-// 3. Inicializar o servidor na porta certa para o Render
+wss.on('connection', (ws) => {
+    if (players.length >= 2) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Sala cheia! Tente novamente mais tarde.' }));
+        ws.close();
+        return;
+    }
+
+    const symbol = players.length === 0 ? 'X' : 'O';
+    players.push({ ws, symbol });
+
+    ws.send(JSON.stringify({ type: 'init', symbol }));
+
+    if (players.length === 2) {
+        resetGame();
+        broadcast({ type: 'start', turn: 'X' });
+    } else {
+        ws.send(JSON.stringify({ type: 'waiting', message: 'Aguardando o segundo jogador...' }));
+    }
+
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+            if (data.type === 'move') {
+                const { index, playerSymbol } = data;
+                if (turn === playerSymbol && gameState[index] === null) {
+                    gameState[index] = playerSymbol;
+                    const winner = checkWinner();
+                    if (winner) {
+                        broadcast({ type: 'gameover', result: 'winner', winner, board: gameState });
+                        resetGame();
+                    } else if (gameState.every(cell => cell !== null)) {
+                        broadcast({ type: 'gameover', result: 'draw', board: gameState });
+                        resetGame();
+                    } else {
+                        turn = turn === 'X' ? 'O' : 'X';
+                        broadcast({ type: 'update', board: gameState, turn });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Erro no processamento:", error);
+        }
+    });
+
+    ws.on('close', () => {
+        players = players.filter(player => player.ws !== ws);
+        resetGame();
+        broadcast({ type: 'opponent_disconnected', message: 'O oponente saiu. Aguardando novo jogador...' });
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor rodando na porta ${PORT}`);

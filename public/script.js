@@ -9,7 +9,7 @@ let currentTurn = null;
 let gameActive = false;
 
 socket.onopen = () => {
-    console.log('Conectado ao servidor Render.');
+    console.log('Conectado ao servidor.');
 };
 
 socket.onmessage = (event) => {
@@ -26,9 +26,9 @@ socket.onmessage = (event) => {
             break;
 
         case 'start':
-            currentTurn = data.turn; // O servidor enviará 'X'
+            currentTurn = data.turn;
             gameActive = true;
-            resetBoardUI(); // Garante o tabuleiro limpo visualmente
+            resetBoardUI();
             updateStatusText();
             break;
 
@@ -63,7 +63,6 @@ socket.onmessage = (event) => {
 cells.forEach(cell => {
     cell.addEventListener('click', () => {
         const index = cell.getAttribute('data-index');
-
         if (gameActive && currentTurn === mySymbol && !cell.textContent) {
             socket.send(JSON.stringify({
                 type: 'move',
@@ -77,7 +76,7 @@ cells.forEach(cell => {
 function updateBoard(boardState) {
     cells.forEach((cell, index) => {
         cell.textContent = boardState[index];
-        cell.className = 'cell'; // Limpa classes
+        cell.className = 'cell';
         if (boardState[index]) {
             cell.classList.add(boardState[index]);
         }
@@ -86,15 +85,13 @@ function updateBoard(boardState) {
 
 function updateStatusText() {
     if (!gameActive) return;
-
     if (currentTurn === mySymbol) {
         statusElement.textContent = `Sua vez (${mySymbol})!`;
-        statusElement.style.color = "#00adb5"; // Destaca em azul/verde
     } else {
         statusElement.textContent = `Vez do oponente (${currentTurn})...`;
-        statusElement.style.color = "#eeeeee"; // Deixa neutro
     }
 }
+
 function resetBoardUI() {
     cells.forEach(cell => {
         cell.textContent = '';
