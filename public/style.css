@@ -1,40 +1,78 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #121212;
+    /* Adicionamos uma máscara escura e degradê neon para destacar o jogo */
+    background-image: 
+        linear-gradient(135deg, rgba(0, 173, 181, 0.5) 0%, rgba(12, 12, 14, 0.9) 50%, rgba(255, 87, 34, 0.5) 100%), 
+        url('fundo.jpg');
+    
+    /* === AQUI ESTÁ O SEGREDO PARA TIRAR O ZOOM === */
+    background-size: contain; /* Faz a foto inteira aparecer sem cortar e sem zoom */
+    background-position: center center; /* Centraliza a foto na tela */
+    background-repeat: no-repeat; /* Não deixa a imagem ficar se repetindo */
+    background-color: #0c0c0e; /* Preenche as laterais com um fundo escuro gamer elegante */
+    
+    background-attachment: fixed;
     color: #ffffff;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
+    padding: 20px;
 }
-
+/* O contêiner agora é mais amplo e centralizado na tela inteira */
 .container {
     text-align: center;
+    background: rgba(18, 18, 18, 0.85);
+    padding: 40px 30px;
+    border-radius: 24px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 
+                0 0 30px rgba(0, 173, 181, 0.25);
+    max-width: 440px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 h1 {
-    margin-bottom: 5px;
+    margin-top: 0;
+    margin-bottom: 10px;
     color: #00adb5;
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-shadow: 0 0 12px rgba(0, 173, 181, 0.6),
+                 0 0 25px rgba(0, 173, 181, 0.3);
 }
 
 .status {
-    font-size: 1.1rem;
-    margin-bottom: 15px;
+    font-size: 1.15rem;
+    margin-bottom: 25px;
     color: #eeeeee;
     font-weight: bold;
-    height: 25px;
+    height: 30px;
 }
 
-/* Estilo do Placar */
+/* Placar com mais espaço e destaque */
 .scoreboard {
     display: flex;
     justify-content: space-around;
-    background-color: #1e1e1e;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    border: 1px solid #333;
+    background-color: rgba(30, 36, 44, 0.95);
+    padding: 15px;
+    border-radius: 14px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
 }
 
 .score-box {
@@ -46,77 +84,90 @@ h1 {
 
 .player-label {
     font-size: 0.85rem;
-    color: #888;
+    color: #aaa;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
 .score-value {
-    font-size: 1.8rem;
+    font-size: 2.2rem;
     font-weight: bold;
     color: #fff;
 }
 
 #score-X {
     color: #ff5722;
+    text-shadow: 0 0 12px rgba(255, 87, 34, 0.6);
 }
 
 #score-O {
     color: #00adb5;
+    text-shadow: 0 0 12px rgba(0, 173, 181, 0.6);
 }
 
-/* Estilo do Tabuleiro */
+/* Tabuleiro ampliado e centralizado */
 .board {
     display: grid;
-    grid-template-columns: repeat(3, 100px);
-    grid-gap: 10px;
-    margin: 0 auto 20px auto;
+    grid-template-columns: repeat(3, 110px); /* Aumentamos de 100px para 110px */
+    grid-gap: 12px;
+    margin: 0 auto 30px auto;
 }
 
 .cell {
-    width: 100px;
-    height: 100px;
-    background-color: #222831;
-    border: 2px solid #393e46;
-    border-radius: 8px;
+    width: 110px;
+    height: 110px;
+    background-color: rgba(24, 28, 36, 0.95);
+    border: 2px solid rgba(57, 62, 70, 0.8);
+    border-radius: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.2s ease-in-out;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
 }
 
 .cell:hover {
-    background-color: #393e46;
+    background-color: rgba(57, 62, 70, 0.95);
+    border-color: #00adb5;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 173, 181, 0.4);
 }
 
 .cell.X {
     color: #ff5722;
+    text-shadow: 0 0 15px rgba(255, 87, 34, 0.8);
 }
 
 .cell.O {
     color: #00adb5;
+    text-shadow: 0 0 15px rgba(0, 173, 181, 0.8);
 }
 
-/* Estilo do Botão */
+/* Botão de Reiniciar largo e imponente */
 .reset-btn {
-    background-color: #00adb5;
+    background: linear-gradient(135deg, #00adb5 0%, #00fff5 100%);
     color: #121212;
     border: none;
-    padding: 10px 20px;
-    font-size: 1rem;
+    padding: 14px 28px;
+    font-size: 1.05rem;
     font-weight: bold;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    box-shadow: 0 5px 20px rgba(0, 173, 181, 0.4);
+    width: 100%;
 }
 
 .reset-btn:hover {
-    background-color: #00fff5;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 173, 181, 0.6);
 }
 
 .reset-btn:active {
