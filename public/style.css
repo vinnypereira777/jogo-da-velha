@@ -14,23 +14,63 @@ body {
 }
 
 h1 {
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     color: #00adb5;
 }
 
 .status {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
     color: #eeeeee;
     font-weight: bold;
-    height: 30px;
+    height: 25px;
 }
 
+/* Estilo do Placar */
+.scoreboard {
+    display: flex;
+    justify-content: space-around;
+    background-color: #1e1e1e;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #333;
+}
+
+.score-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 45%;
+}
+
+.player-label {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+#score-X {
+    color: #ff5722;
+}
+
+#score-O {
+    color: #00adb5;
+}
+
+/* Estilo do Tabuleiro */
 .board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
     grid-gap: 10px;
-    margin: 0 auto;
+    margin: 0 auto 20px auto;
 }
 
 .cell {
@@ -59,4 +99,26 @@ h1 {
 
 .cell.O {
     color: #00adb5;
+}
+
+/* Estilo do Botão */
+.reset-btn {
+    background-color: #00adb5;
+    color: #121212;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.reset-btn:hover {
+    background-color: #00fff5;
+}
+
+.reset-btn:active {
+    transform: scale(0.98);
 }

@@ -11,6 +11,18 @@
         <h1>Jogo da Velha</h1>
         <div id="status" class="status">Conectando ao servidor...</div>
         
+        <!-- Novo Placar -->
+        <div class="scoreboard">
+            <div class="score-box">
+                <span class="player-label">Jogador X</span>
+                <span id="score-X" class="score-value">0</span>
+            </div>
+            <div class="score-box">
+                <span class="player-label">Jogador O</span>
+                <span id="score-O" class="score-value">0</span>
+            </div>
+        </div>
+
         <div class="board" id="board">
             <div class="cell" data-index="0"></div>
             <div class="cell" data-index="1"></div>
@@ -22,6 +34,9 @@
             <div class="cell" data-index="7"></div>
             <div class="cell" data-index="8"></div>
         </div>
+
+        <!-- Novo Botão de Reiniciar -->
+        <button id="reset-btn" class="reset-btn">Reiniciar Partida</button>
     </div>
     <script src="script.js"></script>
 </body>

@@ -3,6 +3,9 @@ const socket = new WebSocket('wss://jogo-da-velha-2-ccpu.onrender.com');
 const boardElement = document.getElementById('board');
 const cells = document.querySelectorAll('.cell');
 const statusElement = document.getElementById('status');
+const scoreXElement = document.getElementById('score-X');
+const scoreOElement = document.getElementById('score-O');
+const resetBtn = document.getElementById('reset-btn');
 
 let mySymbol = null;
 let currentTurn = null;
@@ -25,9 +28,14 @@ socket.onmessage = (event) => {
             statusElement.textContent = data.message;
             break;
 
+        case 'score_update':
+            updateScoresUI(data.scores);
+            break;
+
         case 'start':
             currentTurn = data.turn;
             gameActive = true;
+            if (data.scores) updateScoresUI(data.scores);
             resetBoardUI();
             updateStatusText();
             break;
@@ -41,6 +49,8 @@ socket.onmessage = (event) => {
         case 'gameover':
             updateBoard(data.board);
             gameActive = false;
+            if (data.scores) updateScoresUI(data.scores);
+            
             if (data.result === 'winner') {
                 statusElement.textContent = data.winner === mySymbol ? '🎉 Você venceu!' : '😢 Você perdeu.';
             } else {
@@ -51,6 +61,7 @@ socket.onmessage = (event) => {
         case 'opponent_disconnected':
             statusElement.textContent = data.message;
             gameActive = false;
+            if (data.scores) updateScoresUI(data.scores);
             resetBoardUI();
             break;
 
@@ -73,6 +84,13 @@ cells.forEach(cell => {
     });
 });
 
+// Envia sinal ao servidor para reiniciar o jogo ao clicar no botão
+resetBtn.addEventListener('click', () => {
+    if (gameActive || statusElement.textContent.includes('venceu') || statusElement.textContent.includes('Empate') || statusElement.textContent.includes('perdeu')) {
+        socket.send(JSON.stringify({ type: 'request_reset' }));
+    }
+});
+
 function updateBoard(boardState) {
     cells.forEach((cell, index) => {
         cell.textContent = boardState[index];
@@ -89,6 +107,13 @@ function updateStatusText() {
         statusElement.textContent = `Sua vez (${mySymbol})!`;
     } else {
         statusElement.textContent = `Vez do oponente (${currentTurn})...`;
+    }
+}
+
+function updateScoresUI(scores) {
+    if (scores) {
+        scoreXElement.textContent = scores.X;
+        scoreOElement.textContent = scores.O;
     }
 }
 

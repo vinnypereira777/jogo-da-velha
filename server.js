@@ -34,6 +34,7 @@ const wss = new WebSocketServer({ server });
 let players = []; 
 let gameState = Array(9).fill(null); 
 let turn = 'X'; 
+let scores = { X: 0, O: 0 }; // Armazena a pontuação
 
 function broadcast(data) {
     players.forEach(player => {
@@ -75,9 +76,12 @@ wss.on('connection', (ws) => {
 
     ws.send(JSON.stringify({ type: 'init', symbol }));
 
+    // Envia o placar atual assim que o jogador conecta
+    ws.send(JSON.stringify({ type: 'score_update', scores }));
+
     if (players.length === 2) {
         resetGame();
-        broadcast({ type: 'start', turn: 'X' });
+        broadcast({ type: 'start', turn: 'X', scores });
     } else {
         ws.send(JSON.stringify({ type: 'waiting', message: 'Aguardando o segundo jogador...' }));
     }
@@ -85,22 +89,31 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
+            
+            // Tratamento da jogada
             if (data.type === 'move') {
                 const { index, playerSymbol } = data;
                 if (turn === playerSymbol && gameState[index] === null) {
                     gameState[index] = playerSymbol;
                     const winner = checkWinner();
                     if (winner) {
-                        broadcast({ type: 'gameover', result: 'winner', winner, board: gameState });
+                        scores[winner]++; // Incrementa pontuação do vencedor
+                        broadcast({ type: 'gameover', result: 'winner', winner, board: gameState, scores });
                         resetGame();
                     } else if (gameState.every(cell => cell !== null)) {
-                        broadcast({ type: 'gameover', result: 'draw', board: gameState });
+                        broadcast({ type: 'gameover', result: 'draw', board: gameState, scores });
                         resetGame();
                     } else {
                         turn = turn === 'X' ? 'O' : 'X';
                         broadcast({ type: 'update', board: gameState, turn });
                     }
                 }
+            }
+
+            // Novo: Tratamento para reiniciar o jogo
+            if (data.type === 'request_reset') {
+                resetGame();
+                broadcast({ type: 'start', turn: 'X', scores });
             }
         } catch (error) {
             console.error("Erro no processamento:", error);
@@ -110,7 +123,8 @@ wss.on('connection', (ws) => {
     ws.on('close', () => {
         players = players.filter(player => player.ws !== ws);
         resetGame();
-        broadcast({ type: 'opponent_disconnected', message: 'O oponente saiu. Aguardando novo jogador...' });
+        scores = { X: 0, O: 0 }; // Reseta placar se alguém desconectar
+        broadcast({ type: 'opponent_disconnected', message: 'O oponente saiu. Aguardando novo jogador...', scores });
     });
 });
 
