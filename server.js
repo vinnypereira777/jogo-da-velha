@@ -42,18 +42,58 @@ wss.on('connection', (ws) => {
         return;
     }
 
-    // O primeiro a se conectar é X, o segundo é O
+    // Define o símbolo: o primeiro é X, o segundo é O
     const symbol = players.length === 0 ? 'X' : 'O';
     players.push({ ws, symbol });
 
-    // Informa ao jogador o seu símbolo
+    // Informa ao jogador recém-conectado qual é o símbolo dele
     ws.send(JSON.stringify({ type: 'init', symbol }));
 
     if (players.length === 2) {
-        broadcast({ type: 'start', turn });
+        // Zera o tabuleiro para começar do zero com os dois logados
+        resetGame();
+        // Avisa aos dois que o jogo começou e que a vez inicial é do 'X'
+        broadcast({ type: 'start', turn: 'X' });
     } else {
         ws.send(JSON.stringify({ type: 'waiting', message: 'Aguardando o segundo jogador...' }));
     }
+
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+
+            if (data.type === 'move') {
+                const { index, playerSymbol } = data;
+
+                // Garante que só joga quem está no turno correto
+                if (turn === playerSymbol && gameState[index] === null) {
+                    gameState[index] = playerSymbol;
+                    
+                    const winner = checkWinner();
+                    if (winner) {
+                        broadcast({ type: 'gameover', result: 'winner', winner, board: gameState });
+                        resetGame();
+                    } else if (gameState.every(cell => cell !== null)) {
+                        broadcast({ type: 'gameover', result: 'draw', board: gameState });
+                        resetGame();
+                    } else {
+                        // Alterna o turno entre X e O
+                        turn = turn === 'X' ? 'O' : 'X';
+                        broadcast({ type: 'update', board: gameState, turn });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao processar mensagem do cliente:", error);
+        }
+    });
+
+    ws.on('close', () => {
+        players = players.filter(player => player.ws !== ws);
+        resetGame();
+        broadcast({ type: 'opponent_disconnected', message: 'O oponente saiu. Aguardando novo jogador...' });
+    });
+});
 
     ws.on('message', (message) => {
         try {
@@ -91,7 +131,7 @@ wss.on('connection', (ws) => {
         resetGame();
         broadcast({ type: 'opponent_disconnected', message: 'O oponente saiu. Jogo reiniciado.' });
     });
-});
+
 
 function broadcast(data) {
     players.forEach(player => {

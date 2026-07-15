@@ -26,8 +26,9 @@ socket.onmessage = (event) => {
             break;
 
         case 'start':
-            currentTurn = data.turn;
+            currentTurn = data.turn; // O servidor enviará 'X'
             gameActive = true;
+            resetBoardUI(); // Garante o tabuleiro limpo visualmente
             updateStatusText();
             break;
 
@@ -84,13 +85,16 @@ function updateBoard(boardState) {
 }
 
 function updateStatusText() {
+    if (!gameActive) return;
+
     if (currentTurn === mySymbol) {
-        statusElement.textContent = 'Sua vez de jogar!';
+        statusElement.textContent = `Sua vez (${mySymbol})!`;
+        statusElement.style.color = "#00adb5"; // Destaca em azul/verde
     } else {
-        statusElement.textContent = 'Vez do oponente...';
+        statusElement.textContent = `Vez do oponente (${currentTurn})...`;
+        statusElement.style.color = "#eeeeee"; // Deixa neutro
     }
 }
-
 function resetBoardUI() {
     cells.forEach(cell => {
         cell.textContent = '';
